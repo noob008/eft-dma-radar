@@ -3332,7 +3332,7 @@ namespace eft_dma_radar.UI.Pages
                 Config.Filename = newConfigName + ".json";
                 LoneLogging.WriteLine($"[Config] Creating new config: {Config.ConfigName}");
 
-                var saved = ConfigManager.SaveAsNewConfig(Config.Filename);
+                var saved = ConfigManager.SaveCurrentConfigAsNewConfig(Config.Filename);
 
                 if (saved)
                 {
@@ -3521,7 +3521,7 @@ namespace eft_dma_radar.UI.Pages
 
                 importedConfig.ConfigName = finalName;
 
-                var saved = await Task.Run(() => ConfigManager.SaveAsNewConfig(finalName + ".json"));
+                var saved = await Task.Run(() => ConfigManager.SaveConfigAsNewConfig(importedConfig, finalName + ".json"));
 
                 if (saved)
                 {

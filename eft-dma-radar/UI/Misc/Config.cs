@@ -232,26 +232,40 @@ public static class ConfigManager
         return false;
     }
 
-    public static bool SaveAsNewConfig(string configName)
+    public static bool SaveCurrentConfigAsNewConfig(string configName)
+    {
+        try
+        {
+            SaveConfigAsNewConfig(CurrentConfig, configName);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            LoneLogging.WriteLine($"[Config] Error saving new config {configName}: {ex}");
+            return false;
+        }
+    }
+
+    public static bool SaveConfigAsNewConfig(Config config, string configName)
     {
         try
         {
             if (string.IsNullOrEmpty(configName))
                 return false;
-    
+
             if (!configName.EndsWith(ConfigExtension, StringComparison.OrdinalIgnoreCase))
                 configName += ConfigExtension;
-    
+
             var options = new JsonSerializerOptions { WriteIndented = true };
-            var json = JsonSerializer.Serialize(CurrentConfig, options);
+            var json = JsonSerializer.Serialize(config, options);
             var configToSave = JsonSerializer.Deserialize<Config>(json, options);
-            
+
             configToSave.Filename = configName;
             configToSave.ConfigName = Path.GetFileNameWithoutExtension(configName);
-    
+
             var filePath = Path.Combine(CustomConfigDirectory, configName);
             SafeSaveConfig(configToSave, filePath);
-            
+
             LoneLogging.WriteLine($"[Config] Saved new config: {configName}");
             return true;
         }
@@ -261,7 +275,7 @@ public static class ConfigManager
             return false;
         }
     }
-   
+
     public static bool DeleteConfig(string configName)
     {
         try
