@@ -1189,7 +1189,7 @@ namespace eft_dma_radar.Tarkov.Loot
 
             var (group, entry) = matched.Value;
 
-            if (!group.Enabled || !entry.Enabled || (!group.Notify && !entry.Notify))
+            if (!group.Enabled || !entry.Enabled || !group.Notify || !entry.Notify)
                 return;
 
             var now = DateTime.UtcNow;
