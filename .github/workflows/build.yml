@@ -60,17 +60,36 @@ jobs:
           -p:Version=${{ steps.vers.outputs.version }}
           --no-restore
 
-      # ©¤©¤©¤ Artifacts ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤
+      # ©¤©¤©¤ Publish to fixed folders ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤
+      - name: Publish arena (portable)
+        run: >
+          dotnet publish arena-dma-radar/arena-dma-radar.csproj
+          -c $env:CONFIGURATION
+          -p:Platform=$env:PLATFORM
+          -p:Version=${{ steps.vers.outputs.version }}
+          -p:PublishSingleFile=false
+          -o artifacts/arena
+
+      - name: Publish eft (portable)
+        run: >
+          dotnet publish eft-dma-radar/eft-dma-radar.csproj
+          -c $env:CONFIGURATION
+          -p:Platform=$env:PLATFORM
+          -p:Version=${{ steps.vers.outputs.version }}
+          -p:PublishSingleFile=false
+          -o artifacts/eft
+
+      # ©¤©¤©¤ Upload artifacts ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤
       - name: Upload arena-dma-radar
         uses: actions/upload-artifact@v4
         with:
           name: arena-dma-radar-${{ steps.vers.outputs.version }}
-          path: arena-dma-radar/bin/Release/net10.0-windows7.0/**
+          path: artifacts/arena/**
           if-no-files-found: error
 
       - name: Upload eft-dma-radar
         uses: actions/upload-artifact@v4
         with:
           name: eft-dma-radar-${{ steps.vers.outputs.version }}
-          path: eft-dma-radar/bin/Release/net10.0-windows7.0/**
+          path: artifacts/eft/**
           if-no-files-found: error
