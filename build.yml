@@ -1,0 +1,75 @@
+name: Build (arena + eft)
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ "v*" ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-win:
+    runs-on: windows-latest
+
+    env:
+      CONFIGURATION: Release
+      PLATFORM: x64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set VersionPrefix
+        id: vers
+        shell: pwsh
+        run: |
+          # Prefer tag (v1.2.3), else short SHA, else run number
+          $tag = (git describe --tags --exact-match 2>$null) -replace '^v',''
+          if (-not $tag) { $tag = (git rev-parse --short HEAD) }
+          if (-not $tag) { $tag = "${{ github.run_number }}" }
+          "version=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            10.0.x
+
+      - name: NuGet cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore eft-dma-radar.sln
+
+      - name: Build (Release | x64)
+        run: >
+          dotnet build eft-dma-radar.sln
+          -c $env:CONFIGURATION
+          -p:Platform=$env:PLATFORM
+          -p:VersionPrefix=${{ steps.vers.outputs.version }}
+          --no-restore
+
+      # ─── Artifacts ─────────────────────────────────────────────────────
+
+      - name: Upload arena-dma-radar artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arena-dma-radar-${{ steps.vers.outputs.version }}
+          path: |
+            arena-dma-radar/bin/Release/net10.0-windows7.0/**
+          if-no-files-found: error
+
+      - name: Upload eft-dma-radar artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: eft-dma-radar-${{ steps.vers.outputs.version }}
+          path: |
+            eft-dma-radar/bin/Release/net10.0-windows7.0/**
+          if-no-files-found: error
